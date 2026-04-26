@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 
-// TODO (student): Implement single-post view and delete flow.
-// Suggested steps:
-// 1) Fetch a single post with GET /api/posts/:id.
-// 2) Render title, author, date, and content.
-// 3) Add delete handler with DELETE /api/posts/:id.
-// 4) Navigate back to /blog after successful delete.
 function PostPage() {
-  const { id } = useParams()
+  const { id } = useParams() // Grab the ID from the URL
   const navigate = useNavigate()
 
   const [post, setPost] = useState(null)
@@ -16,24 +10,60 @@ function PostPage() {
   const [error, setError] = useState(null)
   const [deleting, setDeleting] = useState(false)
 
+  // STEP 1 & 2: Fetch the single post when the page opens
   useEffect(() => {
-    // TODO (student): Replace this placeholder with GET /api/posts/:id fetch logic.
-    setLoading(false)
+    fetch(`/api/posts/${id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error('Post not found')
+        return res.json()
+      })
+      .then((data) => {
+        setPost(data)
+        setLoading(false)
+      })
+      .catch((err) => {
+        setError(err.message)
+        setLoading(false)
+      })
   }, [id])
 
+  // STEP 3 & 4: Handle the delete button
   async function handleDelete() {
-    // TODO (student): Implement DELETE /api/posts/:id and navigate('/blog').
+    // A quick safety check so users don't delete things by accident
+    if (!window.confirm('Are you sure you want to delete this post?')) return
+
     setDeleting(true)
-    setError('TODO: implement DELETE /api/posts/:id in PostPage')
-    setDeleting(false)
+    setError(null)
+
+    try {
+      const res = await fetch(`/api/posts/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to delete post')
+      }
+
+      // Success! Drive them back to the main blog list
+      navigate('/blog')
+    } catch (err) {
+      setError(err.message)
+      setDeleting(false) // Turn the button back on so they can try again
+    }
   }
 
   if (loading) return <p className="status-msg">Loading…</p>
   if (error && !post) return <p className="status-msg error">{error}</p>
-  if (!post) return <p className="status-msg">TODO: Load a post by id in PostPage.</p>
+  if (!post) return <p className="status-msg">Post not found.</p>
 
+  // Format the date nicely using the Finnish locale setup you already had
   const date = post.createdAt
-    ? new Date(post.createdAt).toLocaleDateString('fi-FI', { year: 'numeric', month: 'long', day: 'numeric' })
+    ? new Date(post.createdAt).toLocaleDateString('fi-FI', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
     : 'Date missing'
 
   return (
@@ -46,6 +76,8 @@ function PostPage() {
       <h1 className="post-detail-title">{post.title}</h1>
 
       <p className="post-detail-content">{post.content}</p>
+
+      {error && <p className="status-msg error">{error}</p>}
 
       <div className="post-detail-actions">
         <Link to={`/posts/${id}/edit`} className="btn btn-secondary">

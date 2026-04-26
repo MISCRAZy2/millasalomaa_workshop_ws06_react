@@ -10,19 +10,21 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const publicDir = path.join(__dirname, 'public');
 
-// ─── TODO: Write the connectToDatabase function ──────────────────────────────
-// This function should:
-//   1. Check if process.env.MONGODB_URI exists
-//      - If missing, warn the user and return early
-//      - Message: "MONGODB_URI is missing. Create a .env file in backend/ before testing database features."
-//   2. Use a try-catch block to safely connect to MongoDB with mongoose.connect()
-//      - Pass options: { dbName: 'blog' }
-//      - Log success: "Connected to MongoDB"
-//      - Log error: "MongoDB connection error: <error.message>"
-//   3. Return a Promise (async/await)
-//
-// Hint: See WS05 Server.js for the completed version
+async function connectToDatabase() {
+  // 1. Check if process.env.MONGODB_URI exists
+  if (!process.env.MONGODB_URI) {
+    console.warn("MONGODB_URI is missing. Create a .env file in backend/ before testing database features.");
+    return; // Return early
+  }
 
+  // 2. Use a try-catch block to safely connect to MongoDB
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, { dbName: 'blog' });
+    console.log("Connected to MongoDB");
+  } catch (error) {
+    console.error(`MongoDB connection error: ${error.message}`);
+  }
+}
 async function connectToDatabase() {
   // Your code here
   throw new Error('connectToDatabase not implemented. See TODO above.')
