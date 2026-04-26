@@ -3,7 +3,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const pagesRouter = require('./routes/pages');
 const postsRouter = require('./routes/posts');
 
 const app = express();
@@ -34,7 +33,6 @@ app.locals.publicDir = publicDir;
 app.use(express.json());
 app.use(express.static(publicDir));
 
-app.use('/', pagesRouter);
 app.use('/api/posts', postsRouter);
 
 app.use((req, res) => {
